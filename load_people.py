@@ -32,6 +32,6 @@ rows = load_people_csv("people.csv")
 for row in rows:
     try:
         age = int(row["age"])
-        print(f"{row['name']} is {age} years old.")
+        print(f"{row['name']} is {age} years old!")
     except ValueError:
         print(f"{row['age']} is not a valid integer for {row['name']}")
