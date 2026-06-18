@@ -12,6 +12,7 @@ try:
         writer = csv.DictWriter(file, fieldnames=["name", "age"])
         writer.writeheader()
         writer.writerows(people)
+        
 except PermissionError:
     print(f"Permission Denied: You do not have rights to create '{filename}'.")
 
