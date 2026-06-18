@@ -1,3 +1,5 @@
+from report import summarize
+
 import csv
 
 def load_people_csv(filename):
@@ -5,7 +7,12 @@ def load_people_csv(filename):
     try:
         with open(filename, "r") as file:
             reader = csv.DictReader(file)
-            rows=list(reader)
+            for row in reader:
+                try:
+                    row["age"] = int(row["age"])
+                    rows.append(row)
+                except ValueError:
+                    print(f"Skipping {row['name']}: invalid age value '{row['age']}'")
             
     except PermissionError:
         print(f"Permission Denied: You do not have rights to open '{filename}'.")
@@ -30,10 +37,6 @@ def load_people_csv(filename):
 rows = load_people_csv("people.csv")
 
 for row in rows:
-    try:
-        age = int(row["age"])
-        print(f"{row['name']} is {age} years old!")
-    except ValueError:
-        print(f"{row['age']} is not a valid integer for {row['name']}")
+    print(f"{row['name']} is {row['age']} years old!")
 
-    print("Bonus feature: branch test")
+summarize(rows)
