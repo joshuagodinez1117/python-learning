@@ -34,9 +34,20 @@ def load_people_csv(filename):
             print(f"System Error ({error.errno}): {error.strerror}")
     return rows
 
-rows = load_people_csv("people.csv")
+def load_multiple(filenames):
+    all_people = []
+    for filename in filenames:
+        people = load_people_csv(filename)
+        all_people.extend(people)
+    return all_people
 
-for row in rows:
-    print(f"{row['name']} is {row['age']} years old!")
+#rows = load_people_csv("people.csv")
 
-summarize(rows)
+#for row in rows:
+#    print(f"{row['name']} is {row['age']} years old!")
+
+#summarize(rows)
+
+everyone = load_multiple(["people.csv", "people.csv"])
+print(f"\nCombined load result: {len(everyone)} total records")
+summarize(everyone)
