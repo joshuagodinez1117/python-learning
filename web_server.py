@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import datetime
 import os
 import csv
@@ -72,6 +72,43 @@ def report():
         "people": load_people(),
         "github": get_github_summary(),
         "generated_at": datetime.datetime.now(datetime.UTC).isoformat()
+    })
+
+@app.route("/people/stats")
+def people_stats():
+    column = request.args.get("column", "age")
+    stat = request.args.get("stat", "average")
+
+    people = load_people()
+    if not people:
+        return jsonify({"error": "No data found"}), 404
+
+    if column not in people[0]:
+        return jsonify({"error": f"Column '{column}' not found. Available: {list(people[0].keys())}"}), 400
+
+    try:
+        values = [float(row[column]) for row in people]
+    except ValueError:
+        return jsonify({"error": f"Column '{column}' contains non-numeric data"}), 400
+
+    if stat == "average":
+        result = sum(values) / len(values)
+    elif stat == "sum":
+        result = sum(values)
+    elif stat == "min":
+        result = min(values)
+    elif stat == "max":
+        result = max(values)
+    elif stat == "count":
+        result = len(values)
+    else:
+        return jsonify({"error": f"Unknown stat '{stat}'. Use: average, sum, min, max, count"}), 400
+
+    return jsonify({
+        "column": column,
+        "stat": stat,
+        "result": result,
+        "sample_size": len(values)
     })
 
 if __name__ == "__main__":
