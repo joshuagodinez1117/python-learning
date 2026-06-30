@@ -4,6 +4,7 @@ import os
 import csv
 from dotenv import load_dotenv
 import requests as http_requests
+import sqlite3
 
 load_dotenv()
 
@@ -110,6 +111,36 @@ def people_stats():
         "result": result,
         "sample_size": len(values)
     })
+
+@app.route("/query", methods=["POST"])
+def query():
+    body = request.get_json()
+    if not body or "sql" not in body:
+        return jsonify({"error": "Request body must include a 'sql' field"}), 400
+
+    sql = body["sql"]
+
+    # Log every query for safety/auditing
+    with open("query_log.txt", "a") as log:
+        log.write(f"{datetime.datetime.now(datetime.UTC).isoformat()} | {sql}\n")
+
+    conn = sqlite3.connect("data.db")
+    conn.row_factory = sqlite3.Row  # lets us return rows as dicts instead of plain tuples
+
+    try:
+        cursor = conn.execute(sql)
+        if sql.strip().lower().startswith("select"):
+            rows = [dict(row) for row in cursor.fetchall()]
+            conn.close()
+            return jsonify({"rows": rows, "row_count": len(rows)})
+        else:
+            conn.commit()
+            affected = cursor.rowcount
+            conn.close()
+            return jsonify({"message": "Query executed", "rows_affected": affected})
+    except sqlite3.Error as e:
+        conn.close()
+        return jsonify({"error": str(e)}), 400
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
